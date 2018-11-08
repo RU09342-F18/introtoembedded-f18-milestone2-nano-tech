@@ -152,7 +152,7 @@ void Board_Setup(){
     P6SEL |= 0x01;                            // P6.0 ADC option select
     P1DIR |= 0x01;                            // P1.0 output
 }
-void Timer_Setup{
+void Timer_Setup(){
     //P1DIR |= BIT2+BIT3;                     // P1.2 and P1.3 output
     //P1SEL |= BIT2+BIT3;                     // P1.2 and P1.3 options select
     TA0CCR0 = 65536;                          // PWM Period
