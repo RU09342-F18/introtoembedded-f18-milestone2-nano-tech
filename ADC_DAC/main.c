@@ -68,7 +68,7 @@
 
 #include <msp430.h>
 
-int storage = 0;
+float storage = 0;
 int voltage;
 volatile float temperatureDegC;
 volatile float temperatureDegF;
@@ -116,23 +116,23 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                  // Vector  6:  ADC12IFG0
-     storage = ADC12MEM0;
-     storage = storage * 33 ;
-     storage = storage / 495;
-     voltage = storage * 100;
-     storage = storage * 100;
-
-
-            high = voltage >> 8;
-                  UCA1TXBUF = high;
-                  UCA1TXBUF = voltage;
-
-                  if (ADC12MEM0 >= 0x7ff){                 // ADC12MEM = A0 > 0.5AVcc?
-                  P1OUT |= BIT0;                        // P1.0 = 1
-                  }
-                else{
-                  P1OUT &= ~BIT0;                       // P1.0 = 0
-                }
+//Convert the ADC number, back to a voltage
+     storage = (float)ADC12MEM0;            //cast the ADC value to a float)
+     storage = storage * 3.3;               //Multiply by the max voltage
+     storage = storage / 495;               //Divide by scaling value
+     storage = storage * 1000;              //scale up the voltage value so we don't lose decimals and accuracy
+     voltage = (int)storage;                //cast float to an int, store in voltage
+//Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
+     high = voltage >> 8;                   //Bt shift voltage over by 8 bits and store in "High"
+     UCA1TXBUF = high;
+     UCA1TXBUF = voltage;
+//Flash a light
+      if (ADC12MEM0 >= 0x7ff){              // ADC12MEM = A0 > 0.5AVcc?
+      P1OUT |= BIT0;                        // P1.0 = 1
+      }
+      else{
+      P1OUT &= ~BIT0;                       // P1.0 = 0
+      }
 
                 __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
 default: break;
