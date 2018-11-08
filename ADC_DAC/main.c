@@ -74,6 +74,8 @@ volatile float temperatureDegC;
 volatile float temperatureDegF;
 unsigned char high;
 
+float Calc_R2(float vout);
+
 int main(void)
 {
   WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
