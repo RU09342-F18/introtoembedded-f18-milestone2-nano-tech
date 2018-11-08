@@ -70,12 +70,10 @@
 
 float storage = 0;
 int voltage;
-volatile float temperatureDegC;
-volatile float temperatureDegF;
 unsigned char high;
 
-float Convert_VtoR(float vout);             // funtion for converting the voltage value to resistance 
-float Convert_RtoT(float resist);           // function for converting the resistance value to temperature
+float Convert_VtoR(float vout);                
+float Convert_RtoT(float resist);
 
 void UART_Setup();
 void Board_Setup();
@@ -92,10 +90,10 @@ int main(void)
 
   while (1)
   {
-    ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
+    ADC12CTL0 |= ADC12SC;                     // Start sampling/conversion
 
-    __bis_SR_register(LPM0_bits + GIE);     // LPM0, ADC12_ISR will force exit
-    __no_operation();                       // For debugger
+    __bis_SR_register(LPM0_bits + GIE);       // LPM0, ADC12_ISR will force exit
+    __no_operation();                         // For debugger
   }
 }
 
@@ -110,28 +108,28 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 {
   switch(__even_in_range(ADC12IV,34))
   {
-  case  6:                                  // Vector  6:  ADC12IFG0
+  case  6:                                    // Vector  6:  ADC12IFG0
     //Convert the ADC number, back to a voltage
-    storage = (float)ADC12MEM0;             // cast the ADC value to a float)
-    storage = storage * 3.3;                // Multiply by the max voltage
-    storage = storage / 495;                // Divide by scaling value
-    storage = storage * 1000;               // scale up the voltage value so we don't lose decimals and accuracy
-    voltage = (int)storage;                 // cast float to an int, store in voltage
+    storage = (float)ADC12MEM0;               // cast the ADC value to a float)
+    storage = storage * 3.3;                  // Multiply by the max voltage
+    storage = storage / 495;                  // Divide by scaling value
+    storage = storage * 1000;                 // scale up the voltage value so we don't lose decimals and accuracy
+    voltage = (int)storage;                   // cast float to an int, store in voltage
     
     //Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
-    high = voltage >> 8;                    // Bt shift voltage over by 8 bits and store in "High"
+    high = voltage >> 8;                      // Bt shift voltage over by 8 bits and store in "High"
     UCA1TXBUF = high;
     UCA1TXBUF = voltage;
     
     //Flash a light
-    if (ADC12MEM0 >= 0x7ff){                // ADC12MEM = A0 > 0.5AVcc?
-      P1OUT |= BIT0;                        // P1.0 = 1
+    if (ADC12MEM0 >= 0x7ff){                  // ADC12MEM = A0 > 0.5AVcc?
+      P1OUT |= BIT0;                          // P1.0 = 1
     }
     else{
-      P1OUT &= ~BIT0;                       // P1.0 = 0
+      P1OUT &= ~BIT0;                         // P1.0 = 0
     }
 
-    __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
+    __bic_SR_register_on_exit(LPM0_bits);     // Exit active CPU
   default: break;
   }
 }
@@ -155,18 +153,18 @@ void Board_Setup(){
     P1DIR |= 0x01;                            // P1.0 output
 }
 void Timer_Setup{
-    //P1DIR |= BIT2+BIT3;                       // P1.2 and P1.3 output
-    //P1SEL |= BIT2+BIT3;                       // P1.2 and P1.3 options select
+    //P1DIR |= BIT2+BIT3;                     // P1.2 and P1.3 output
+    //P1SEL |= BIT2+BIT3;                     // P1.2 and P1.3 options select
     TA0CCR0 = 65536;                          // PWM Period
     TA0CCTL1 = OUTMOD_7;                      // CCR1 reset/set
     TA0CCTL2 = OUTMOD_7;                      // CCR2 reset/set
     TA0CTL = TASSEL_2 + MC_1 + TACLR;         // SMCLK, up mode, clear TAR
 
-    TA0CCR1 = 65535;                            // CCR1 PWM
-    TA0CCR2 = 65534;                            // CCR2 PWM
+    TA0CCR1 = 65535;                          // CCR1 PWM
+    TA0CCR2 = 65534;                          // CCR2 PWM
 }
 
-float Convert_VtoR(float vout){
+float Convert_VtoR(float vout){               // funtion for converting the vout value to resistance
   float R2_value;
 
   R2_value = (vout * 10000) / (vout - 3.3);
@@ -174,7 +172,7 @@ float Convert_VtoR(float vout){
   return R2_value;
 }
 
-float Convert_RtoT(float resist){
+float Convert_RtoT(float resist){             // // function for converting the resistance value to temperature
   float temperature;
   resist = R2_value;
 
@@ -199,4 +197,5 @@ float Convert_RtoT(float resist){
   else if ((resist <= 442.6) & (resist > 182.6)){
     temperature = - 0.1334 * resist + 171.64;
   }
+  return temperature;
 }
