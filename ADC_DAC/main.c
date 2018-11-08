@@ -115,26 +115,34 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 {
   switch(__even_in_range(ADC12IV,34))
   {
-  case  6:                                  // Vector  6:  ADC12IFG0
-     storage = ADC12MEM0;
-     storage = storage * 33 ;
-     storage = storage / 495;
-     voltage = storage * 100;
-     storage = storage * 100;
+    case  6:                                 // Vector  6:  ADC12IFG0
+      storage = ADC12MEM0;
+      storage = storage * 33 ;
+      storage = storage / 495;
+      voltage = storage * 100;
+      storage = storage * 100;
 
 
-            high = voltage >> 8;
-                  UCA1TXBUF = high;
-                  UCA1TXBUF = voltage;
+      high = voltage >> 8;
+      UCA1TXBUF = high;
+      UCA1TXBUF = voltage;
 
-                  if (ADC12MEM0 >= 0x7ff){                 // ADC12MEM = A0 > 0.5AVcc?
-                  P1OUT |= BIT0;                        // P1.0 = 1
-                  }
-                else{
-                  P1OUT &= ~BIT0;                       // P1.0 = 0
-                }
+      if (ADC12MEM0 >= 0x7ff){                // ADC12MEM = A0 > 0.5AVcc?
+        P1OUT |= BIT0;                        // P1.0 = 1
+      }
+      else{
+        P1OUT &= ~BIT0;                       // P1.0 = 0
+      }
 
-                __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
-default: break;
+      __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
+      default: break;
   }
+}
+
+float Calc_R2(float vout){
+  float R2_value;
+
+  R2_value = (vout * 10000) / (vout - 3.3);
+
+  return R2_value;
 }
