@@ -79,6 +79,7 @@ float Convert_RtoT(float resist);
 
 void UART_Setup();
 void Board_Setup();
+void Timer_Setup();
 
 int main(void)
 {
