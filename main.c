@@ -77,24 +77,15 @@ unsigned char high;
 float Convert_VtoR(float vout);
 float Convert_RtoT(float resist);
 
+void UART_Setup();
+void Board_Setup();
+
 int main(void)
 {
-  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-  ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
-  ADC12CTL1 = ADC12SHP;                     // Use sampling timer
-  ADC12IE = 0x01;                           // Enable interrupt
-  ADC12CTL0 |= ADC12ENC;
-  P6SEL |= 0x01;                            // P6.0 ADC option select
-  P1DIR |= 0x01;                            // P1.0 output
 
 
-  UCA1CTL1 |= UCSWRST;                      // **Put state machine in reset**
-  UCA1CTL1 |= UCSSEL_1;                     // CLK = ACLK
-  UCA1BR0 = 0x03;                           // 32kHz/9600=3.41 (see User's Guide)
-  UCA1BR1 = 0x00;                           //
-  UCA1MCTL = UCBRS_3+UCBRF_0;               // Modulation UCBRSx=3, UCBRFx=0
-  UCA1CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-  UCA1IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
+
+
 
 
   UCA1TXBUF = 12;
@@ -142,6 +133,25 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     __bic_SR_register_on_exit(LPM0_bits);   // Exit active CPU
   default: break;
   }
+}
+void UART_Setup(){
+    UCA1CTL1 |= UCSWRST;                      // **Put state machine in reset**
+    UCA1CTL1 |= UCSSEL_1;                     // CLK = ACLK
+    UCA1BR0 = 0x03;                           // 32kHz/9600=3.41 (see User's Guide)
+    UCA1BR1 = 0x00;                           //
+    UCA1MCTL = UCBRS_3+UCBRF_0;               // Modulation UCBRSx=3, UCBRFx=0
+    UCA1CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
+    UCA1IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
+}
+
+void Board_Setup(){
+    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+    ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
+    ADC12CTL1 = ADC12SHP;                     // Use sampling timer
+    ADC12IE = 0x01;                           // Enable interrupt
+    ADC12CTL0 |= ADC12ENC;
+    P6SEL |= 0x01;                            // P6.0 ADC option select
+    P1DIR |= 0x01;                            // P1.0 output
 }
 
 float Convert_VtoR(float vout){
