@@ -88,7 +88,7 @@ int main(void)
 
 
 
-  UCA1TXBUF = 12;
+
   while (1)
   {
     ADC12CTL0 |= ADC12SC;                   // Start sampling/conversion
