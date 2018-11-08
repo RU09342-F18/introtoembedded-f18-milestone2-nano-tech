@@ -6,3 +6,6 @@
 */Debug/*
 */Release/*
 ~$Temp Equations.xlsx
+
+.settings/*
+targetConfigs/*
