@@ -87,7 +87,7 @@ void UART_Setup(){
 void Board_Setup(){
     WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
     ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
-    ADC12CTL1 = ADC12SHP;                     // Use sampling timer
+    ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2;                     // Use sampling timer +  ADC12 on sample single channel repeatedly
     ADC12IE = 0x01;                           // Enable interrupt
     ADC12CTL0 |= ADC12ENC;
     P6SEL |= 0x01;                            // P6.0 ADC option select
