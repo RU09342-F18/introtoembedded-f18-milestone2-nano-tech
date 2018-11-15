@@ -11,24 +11,24 @@ float Convert_RtoT(float resist);
 void UART_Setup();
 void Board_Setup();
 void Timer_Setup();
+void PWN_Set(int percent);
 
 int main(void)
 {
-    float temp;
-    Board_Setup();
-    UART_Setup();
-while(1){
+  float temp;
+  Board_Setup();
+  UART_Setup();
+  while(1){
     temp = Convert_VtoR(Last_ADC);
     temp = Convert_RtoT(temp);
     TA0CCR1 = temp * 630;
-}
+  }
 
 
 
 
 
-  while (1)
-  {
+  while (1){
     ADC12CTL0 |= ADC12SC;                     // Start sampling/conversion
 
     __bis_SR_register(LPM0_bits + GIE);       // LPM0, ADC12_ISR will force exit
@@ -48,9 +48,9 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                    // Vector  6:  ADC12IFG0
-      Last_ADC = ADC12MEM0;
+    Last_ADC = ADC12MEM0;
     //Convert the ADC number, back to a voltage
- /*   storage = (float)ADC12MEM0;               // cast the ADC value to a float)
+    /* storage = (float)ADC12MEM0;               // cast the ADC value to a float)
     storage = storage * 3.3;                  // Multiply by the max voltage
     storage = storage / 495;                  // Divide by scaling value
     storage = storage * 1000;                 // scale up the voltage value so we don't lose decimals and accuracy
@@ -75,13 +75,13 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   }
 }
 void UART_Setup(){
-    UCA1CTL1 |= UCSWRST;                      // **Put state machine in reset**
-    UCA1CTL1 |= UCSSEL_1;                     // CLK = ACLK
-    UCA1BR0 = 0x03;                           // 32kHz/9600=3.41 (see User's Guide)
-    UCA1BR1 = 0x00;                           //
-    UCA1MCTL = UCBRS_3+UCBRF_0;               // Modulation UCBRSx=3, UCBRFx=0
-    UCA1CTL1 &= ~UCSWRST;                     // **Initialize USCI state machine**
-    UCA1IE |= UCRXIE;                         // Enable USCI_A0 RX interrupt
+  UCA1CTL1 |= UCSWRST;                        // **Put state machine in reset**
+  UCA1CTL1 |= UCSSEL_1;                       // CLK = ACLK
+  UCA1BR0 = 0x03;                             // 32kHz/9600=3.41 (see User's Guide)
+  UCA1BR1 = 0x00;                             //
+  UCA1MCTL = UCBRS_3+UCBRF_0;                 // Modulation UCBRSx=3, UCBRFx=0
+  UCA1CTL1 &= ~UCSWRST;                       // **Initialize USCI state machine**
+  UCA1IE |= UCRXIE;                           // Enable USCI_A0 RX interrupt
 }
 
 void Board_Setup(){
@@ -98,17 +98,22 @@ void Board_Setup(){
     P1SEL |= BIT2;
     P1DIR |= BIT2;
 
+
 }
 void Timer_Setup(){
-    //P1DIR |= BIT2+BIT3;                     // P1.2 and P1.3 output
-    //P1SEL |= BIT2+BIT3;                     // P1.2 and P1.3 options select
-    TA0CCR0 = 65536;                          // PWM Period
-    TA0CCTL1 = OUTMOD_7;                      // CCR1 reset/set
-    TA0CCTL2 = OUTMOD_7;                      // CCR2 reset/set
-    TA0CTL = TASSEL_2 + MC_1 + TACLR;         // SMCLK, up mode, clear TAR
+  //P1DIR |= BIT2+BIT3;                       // P1.2 and P1.3 output
+  //P1SEL |= BIT2+BIT3;                       // P1.2 and P1.3 options select
+  TA0CCR0 = 65536;                            // PWM Period
+  TA0CCTL1 = OUTMOD_2;                        // CCR1 reset/set
+  TA0CTL = TASSEL_2 + MC_1 + TACLR;           // SMCLK, up mode, clear TAR
+  TA0CCR1 = 100;                              // CCR1 PWM
+}
 
-    TA0CCR1 = 65535;                          // CCR1 PWM
-    TA0CCR2 = 65534;                          // CCR2 PWM
+void PWN_Set(int percent){                    // Subject to change
+  TA0CTL = TASSEL_2 + MC_1 + ID_0;            // SMCLK divided by 1, Up
+  TA0CCR0 = 100;                              // Sets CCR0 to 100
+  TA0CCR1 = percent;
+  TA0CCTL0 = OUTMOD_2;                        // Toggle or Reset behavior
 }
 
 float Convert_VtoR(float vout){               // funtion for converting the vout value to resistance
