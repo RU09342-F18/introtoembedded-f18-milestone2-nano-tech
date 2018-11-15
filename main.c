@@ -100,20 +100,18 @@ void Board_Setup(){
 
 
 }
+
 void Timer_Setup(){
   //P1DIR |= BIT2+BIT3;                       // P1.2 and P1.3 output
   //P1SEL |= BIT2+BIT3;                       // P1.2 and P1.3 options select
-  TA0CCR0 = 65536;                            // PWM Period
+  TA0CCR0 = 100;                              // PWM Period
   TA0CCTL1 = OUTMOD_2;                        // CCR1 reset/set
   TA0CTL = TASSEL_2 + MC_1 + TACLR;           // SMCLK, up mode, clear TAR
   TA0CCR1 = 100;                              // CCR1 PWM
 }
 
 void PWN_Set(int percent){                    // Subject to change
-  TA0CTL = TASSEL_2 + MC_1 + ID_0;            // SMCLK divided by 1, Up
-  TA0CCR0 = 100;                              // Sets CCR0 to 100
   TA0CCR1 = percent;
-  TA0CCTL0 = OUTMOD_2;                        // Toggle or Reset behavior
 }
 
 float Convert_VtoR(float vout){               // funtion for converting the vout value to resistance
