@@ -1,5 +1,6 @@
 #include <msp430.h>
 
+long Last_ADC = 0;
 float storage = 0;
 int voltage;
 unsigned char high;
@@ -13,8 +14,14 @@ void Timer_Setup();
 
 int main(void)
 {
-
-
+    float temp;
+    Board_Setup();
+    UART_Setup();
+while(1){
+    temp = Convert_VtoR(Last_ADC);
+    temp = Convert_RtoT(temp);
+    TA0CCR1 = temp * 630;
+}
 
 
 
@@ -41,13 +48,14 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                    // Vector  6:  ADC12IFG0
+      Last_ADC = ADC12MEM0;
     //Convert the ADC number, back to a voltage
-    storage = (float)ADC12MEM0;               // cast the ADC value to a float)
+ /*   storage = (float)ADC12MEM0;               // cast the ADC value to a float)
     storage = storage * 3.3;                  // Multiply by the max voltage
     storage = storage / 495;                  // Divide by scaling value
     storage = storage * 1000;                 // scale up the voltage value so we don't lose decimals and accuracy
     voltage = (int)storage;                   // cast float to an int, store in voltage
-    
+    */
     //Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
     high = voltage >> 8;                      // Bt shift voltage over by 8 bits and store in "High"
     UCA1TXBUF = high;
@@ -60,6 +68,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     else{
       P1OUT &= ~BIT0;                         // P1.0 = 0
     }
+
 
     __bic_SR_register_on_exit(LPM0_bits);     // Exit active CPU
   default: break;
@@ -83,6 +92,12 @@ void Board_Setup(){
     ADC12CTL0 |= ADC12ENC;
     P6SEL |= 0x01;                            // P6.0 ADC option select
     P1DIR |= 0x01;                            // P1.0 output
+
+    //Setup  Timer 0.1 output to board
+    //P1.2
+    P1SEL |= BIT2;
+    P1DIR |= BIT2;
+
 }
 void Timer_Setup(){
     //P1DIR |= BIT2+BIT3;                     // P1.2 and P1.3 output
