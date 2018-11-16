@@ -14,26 +14,26 @@ void Board_Setup();
 void Timer_Setup();
 void Set_PWM(int percent);
 
-int main(void)
-{//Board Setup
+int main(void){
+  //Board Setup
   int Target_Temperature = 33;
   float Temperature_Offset;
   float Current_Temperature;
   float Swap_Space;
   Board_Setup();
   UART_Setup();
+  
   // Get initial temperature
-Swap_Space = Convert_VtoR(ADC12MEM0);
-Current_Temperature = Convert_RtoT(Swap_Space);
-Temperature_Offset = Current_Temperature - Target_Temperature;
-if(Temperature_Offset >= 1){
+  Swap_Space = Convert_VtoR(ADC12MEM0);
+  Current_Temperature = Convert_RtoT(Swap_Space);
+  Temperature_Offset = Current_Temperature - Target_Temperature;
+  
+  if(Temperature_Offset >= 1){
     Set_PWM((Temperature_Offset * 7) + 15);
-    }else{
+  }
+  else{
     Set_PWM(10);
-}
-
-
-
+  }
 
 
 
@@ -57,7 +57,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                    // Vector  6:  ADC12IFG0
-      /*
+    /*
     //Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
     high = voltage >> 8;                      // Bt shift voltage over by 8 bits and store in "High"
     UCA1TXBUF = high;
