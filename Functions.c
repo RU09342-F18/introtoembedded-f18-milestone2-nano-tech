@@ -4,7 +4,7 @@
  *  Created on: Nov 16, 2018
  *      Author: Tyler
  */
-
+#include "Functions.h"
 float Convert_VtoR(float vout){               // funtion for converting the vout value to resistance
   float R2_value;
 
