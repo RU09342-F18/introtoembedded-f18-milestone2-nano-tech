@@ -1,28 +1,37 @@
 #include <msp430.h>
+#include <Functions.h>
 
-long Last_ADC = 0;
+
 float storage = 0;
 int voltage;
 unsigned char high;
 
-float Convert_VtoR(float vout);                
-float Convert_RtoT(float resist);
+//float Convert_VtoR(float vout);
+//float Convert_RtoT(float resist);
 
 void UART_Setup();
 void Board_Setup();
 void Timer_Setup();
-void Set_PWN(int percent);
+void Set_PWM(int percent);
 
 int main(void)
-{
-  float temp;
+{//Board Setup
+  int Target_Temperature = 33;
+  float Temperature_Offset;
+  float Current_Temperature;
+  float Swap_Space;
   Board_Setup();
   UART_Setup();
-  while(1){
-    temp = Convert_VtoR(Last_ADC);
-    temp = Convert_RtoT(temp);
-    TA0CCR1 = temp * 630;
-  }
+  // Get initial temperature
+Swap_Space = Convert_VtoR(ADC12MEM0);
+Current_Temperature = Convert_RtoT(Swap_Space);
+Temperature_Offset = Current_Temperature - Target_Temperature;
+if(Temperature_Offset >= 1){
+    Set_PWM((Temperature_Offset * 7) + 15);
+    }else{
+    Set_PWM(10);
+}
+
 
 
 
@@ -48,19 +57,12 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                    // Vector  6:  ADC12IFG0
-    Last_ADC = ADC12MEM0;
-    //Convert the ADC number, back to a voltage
-    /* storage = (float)ADC12MEM0;            // cast the ADC value to a float)
-    storage = storage * 3.3;                  // Multiply by the max voltage
-    storage = storage / 495;                  // Divide by scaling value
-    storage = storage * 1000;                 // scale up the voltage value so we don't lose decimals and accuracy
-    voltage = (int)storage;                   // cast float to an int, store in voltage
-    */
+      /*
     //Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
     high = voltage >> 8;                      // Bt shift voltage over by 8 bits and store in "High"
     UCA1TXBUF = high;
     UCA1TXBUF = voltage;
-    
+    */
     //Flash a light
     if (ADC12MEM0 >= 0x7ff){                  // ADC12MEM = A0 > 0.5AVcc?
       P1OUT |= BIT0;                          // P1.0 = 1
@@ -116,7 +118,7 @@ __interrupt void TIMER_A1(void){
   TA1CCR1 += 3277;
 }
 
-void Set_PWN(int percent){                    // Setting the PWN for Fan time on and off
+void Set_PWM(int percent){
   if (percent >= 15){
     TA0CCR1 = percent;
   }                     
@@ -125,39 +127,4 @@ void Set_PWN(int percent){                    // Setting the PWN for Fan time on
   }
 }
 
-float Convert_VtoR(float vout){               // funtion for converting the vout value to resistance
-  float R2_value;
 
-  R2_value = (vout * 10000) / (vout - 3.3);
-
-  return R2_value;
-}
-
-float Convert_RtoT(float R2_value){           // function for converting the resistance value to temperature
-  float resist;
-  float temperature;
-  resist = R2_value;
-
-  if ((resist <= 32554) & (resist > 19872)){
-    temperature = - 0.0008 * resist + 25.311;
-  }
-  else if ((resist <= 19872) & (resist > 10000)){
-    temperature = - 0.0015 * resist + 39.319;
-  }
-  else if ((resist <= 10000) & (resist > 4372)){
-    temperature = - 0.0035 * resist + 59.061;
-  }
-  else if ((resist <= 4372) & (resist > 1753)){
-    temperature = - 0.0094 * resist + 84.646;
-  }
-  else if ((resist <= 1753) & (resist > 786)){
-    temperature = - 0.0256 * resist + 113.46;
-  }
-  else if ((resist <= 786) & (resist > 442.6)){
-    temperature = - 0.0579 * resist + 139.74;
-  }
-  else if ((resist <= 442.6) & (resist > 182.6)){
-    temperature = - 0.1334 * resist + 171.64;
-  }
-  return temperature;
-}
