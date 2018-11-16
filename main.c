@@ -83,13 +83,13 @@ void UART_Setup(){
 }
 
 void Board_Setup(){
-  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-  ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
-  ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2;                     // Use sampling timer +  ADC12 on sample single channel repeatedly
-  ADC12IE = 0x01;                           // Enable interrupt
+  WDTCTL = WDTPW + WDTHOLD;                   // Stop WDT
+  ADC12CTL0 = ADC12SHT02 + ADC12ON;           // Sampling time, ADC12 on
+  ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2;       // Use sampling timer +  ADC12 on sample single channel repeatedly
+  ADC12IE = 0x01;                             // Enable interrupt
   ADC12CTL0 |= ADC12ENC;
-  P6SEL |= 0x01;                            // P6.0 ADC option select
-  P1DIR |= 0x01;                            // P1.0 output
+  P6SEL |= 0x01;                              // P6.0 ADC option select
+  P1DIR |= 0x01;                              // P1.0 output
 
   //Setup  Timer 0.1 output to board
   //P1.2
@@ -102,11 +102,21 @@ void Timer_Setup(){
   //P1SEL |= BIT2+BIT3;                       // P1.2 and P1.3 options select
   TA0CCR0 = 100;                              // PWM Period
   TA0CCTL1 = OUTMOD_2;                        // Toggle or Reset Behavior
-  TA0CTL = TASSEL_2 + MC_1 + TACLR;           // SMCLK, up mode, clear TAR
+  TA0CTL = TASSEL_2 + MC_1 + TACLR;           // AMCLK, up mode, clear TAR
   TA0CCR1 = 100;                              // CCR1 PWM
+
+  TA1CTL = TASSEL_1 + MC_1 + TACLR;
+  TA1CCR0 = 32768;
+  TA1CCTL1 = CCIE;
+  }
 }
 
-void Set_PWN(int percent){
+#pragma vector=TIMER0_A1_VECTOR
+__interrupt void TIMER_A1(void){
+  TA1CCR1 += 3277;
+}
+
+void Set_PWN(int percent){                    // Setting the PWN for Fan time on and off
   if (percent >= 15){
     TA0CCR1 = percent;
   }                     
@@ -123,7 +133,7 @@ float Convert_VtoR(float vout){               // funtion for converting the vout
   return R2_value;
 }
 
-float Convert_RtoT(float R2_value){             // // function for converting the resistance value to temperature
+float Convert_RtoT(float R2_value){           // function for converting the resistance value to temperature
   float resist;
   float temperature;
   resist = R2_value;
