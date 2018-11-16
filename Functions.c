@@ -42,4 +42,43 @@ float Convert_RtoT(float R2_value){             // // function for converting th
   return temperature;
 }
 
+float Detect_Change(int T0, int T1, int T2, int T3, int T4){
+    int decrease = 0;
+    int increase = 0;
+    int diff;
+    int Total_diff = 0;
 
+    diff = T3 - T4;
+    if(diff > 0){
+        increase ++;
+    }else if(diff < 0){
+        decrease ++;
+    }
+    Total_diff += diff;
+
+    diff = T2 - T3;
+    if(diff > 0){
+        increase ++;
+    }else if(diff< 0){
+        decrease ++;
+    }
+    Total_diff += diff;
+
+    diff = T1 - T2;
+    if(diff > 0){
+        increase ++;
+    }else if(diff < 0){
+        decrease ++;
+    }
+    Total_diff += diff;
+
+    diff = T0 - T1;
+    if(diff > 0){
+        increase ++;
+    }else if(diff < 0){
+        decrease ++;
+    }
+    Total_diff += diff;
+
+
+}
