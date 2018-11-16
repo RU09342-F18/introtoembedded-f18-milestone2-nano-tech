@@ -10,9 +10,9 @@
 
 
 
-float Convert_VtoR(float vout)
+float Convert_VtoR(float vout);
 
-float Convert_RtoT(float R2_value)
+float Convert_RtoT(float R2_value);
 
 
 #endif /* FUNCTIONS_H_ */
