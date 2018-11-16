@@ -1,7 +1,7 @@
 #include <msp430.h>
 #include <Functions.h>
 
-int Target_Temperature = 33;
+
 float storage = 0;
 int voltage;
 unsigned char high;
@@ -16,6 +16,7 @@ void Set_PWN(int percent);
 
 int main(void)
 {//Board Setup
+  int Target_Temperature = 33;
   float Temperature_Offset;
   float Current_Temperature;
   float Swap_Space;
@@ -26,9 +27,9 @@ Swap_Space = Convert_VtoR(ADC12MEM0);
 Current_Temperature = Convert_RtoT(Swap_Space);
 Temperature_Offset = Current_Temperature - Target_Temperature;
 if(Temperature_Offset >= 1){
-    PWM_Set((Temperature_Offset * 7) + 15);
+    Set_PWM((Temperature_Offset * 7) + 15);
     }else{
-    PWM_Set(10);
+    Set_PWM(10);
 }
 
 
