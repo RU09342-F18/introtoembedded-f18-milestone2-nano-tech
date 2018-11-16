@@ -12,7 +12,7 @@ unsigned char high;
 void UART_Setup();
 void Board_Setup();
 void Timer_Setup();
-void Set_PWN(int percent);
+void Set_PWM(int percent);
 
 int main(void)
 {//Board Setup
@@ -108,7 +108,7 @@ void Timer_Setup(){
   TA0CCR1 = 100;                              // CCR1 PWM
 }
 
-void Set_PWN(int percent){
+void Set_PWM(int percent){
   if (percent >= 15){
     TA0CCR1 = percent;
   }                     
