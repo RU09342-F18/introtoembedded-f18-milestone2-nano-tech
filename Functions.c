@@ -42,19 +42,19 @@ float Convert_RtoT(float R2_value){             // // function for converting th
   return temperature;
 }
 
-float Detect_Change(int T0, int T1, int T2, int T3, int T4){
+int Detect_Change(int T0, int T1, int T2, int T3, int T4){
     int decrease = 0;
     int increase = 0;
     int diff;
     int Total_diff = 0;
-
+//Check the difference in temperature between each node
     diff = T3 - T4;
     if(diff > 0){
         increase ++;
     }else if(diff < 0){
         decrease ++;
     }
-    Total_diff += diff;
+    Total_diff += diff; //Keep track of the total difference between each node
 
     diff = T2 - T3;
     if(diff > 0){
@@ -79,6 +79,19 @@ float Detect_Change(int T0, int T1, int T2, int T3, int T4){
         decrease ++;
     }
     Total_diff += diff;
+
+    if(total_diff > 0){//Since the number of changes is even, the tie breaker will be if the total difference is negative or positive
+        increase ++;
+    }else if(total_diff < 0){
+        decrease ++;
+    }
+    if(decrease > increase){
+        return (Total_diff)
+    }else if (decrease < increase){
+        return (Total_diff)
+    }else if (decrease == increase){
+        return (0);
+    }
 
 
 }
