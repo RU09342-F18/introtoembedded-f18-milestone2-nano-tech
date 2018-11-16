@@ -12,7 +12,7 @@ float Convert_RtoT(float resist);
 void UART_Setup();
 void Board_Setup();
 void Timer_Setup();
-void PWN_Set(int percent);
+void Set_PWN(int percent);
 
 int main(void)
 {//Board Setup
@@ -63,7 +63,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   case  6:                                    // Vector  6:  ADC12IFG0
     Last_ADC = ADC12MEM0;
     //Convert the ADC number, back to a voltage
-    /* storage = (float)ADC12MEM0;               // cast the ADC value to a float)
+    /* storage = (float)ADC12MEM0;            // cast the ADC value to a float)
     storage = storage * 3.3;                  // Multiply by the max voltage
     storage = storage / 495;                  // Divide by scaling value
     storage = storage * 1000;                 // scale up the voltage value so we don't lose decimals and accuracy
@@ -81,8 +81,6 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     else{
       P1OUT &= ~BIT0;                         // P1.0 = 0
     }
-
-
     __bic_SR_register_on_exit(LPM0_bits);     // Exit active CPU
   default: break;
   }
@@ -98,33 +96,36 @@ void UART_Setup(){
 }
 
 void Board_Setup(){
-    WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
-    ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
-    ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2;                     // Use sampling timer +  ADC12 on sample single channel repeatedly
-    ADC12IE = 0x01;                           // Enable interrupt
-    ADC12CTL0 |= ADC12ENC;
-    P6SEL |= 0x01;                            // P6.0 ADC option select
-    P1DIR |= 0x01;                            // P1.0 output
+  WDTCTL = WDTPW + WDTHOLD;                 // Stop WDT
+  ADC12CTL0 = ADC12SHT02 + ADC12ON;         // Sampling time, ADC12 on
+  ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2;                     // Use sampling timer +  ADC12 on sample single channel repeatedly
+  ADC12IE = 0x01;                           // Enable interrupt
+  ADC12CTL0 |= ADC12ENC;
+  P6SEL |= 0x01;                            // P6.0 ADC option select
+  P1DIR |= 0x01;                            // P1.0 output
 
-    //Setup  Timer 0.1 output to board
-    //P1.2
-    P1SEL |= BIT2;
-    P1DIR |= BIT2;
-
-
+  //Setup  Timer 0.1 output to board
+  //P1.2
+  P1SEL |= BIT2;
+  P1DIR |= BIT2;
 }
 
 void Timer_Setup(){
   //P1DIR |= BIT2+BIT3;                       // P1.2 and P1.3 output
   //P1SEL |= BIT2+BIT3;                       // P1.2 and P1.3 options select
   TA0CCR0 = 100;                              // PWM Period
-  TA0CCTL1 = OUTMOD_2;                        // CCR1 reset/set
+  TA0CCTL1 = OUTMOD_2;                        // Toggle or Reset Behavior
   TA0CTL = TASSEL_2 + MC_1 + TACLR;           // SMCLK, up mode, clear TAR
   TA0CCR1 = 100;                              // CCR1 PWM
 }
 
-void PWN_Set(int percent){                    // Subject to change
-  TA0CCR1 = percent;
+void Set_PWN(int percent){
+  if (percent >= 15){
+    TA0CCR1 = percent;
+  }                     
+  else{
+    TA0CCR1 = 15;
+  }
 }
 
 float Convert_VtoR(float vout){               // funtion for converting the vout value to resistance
