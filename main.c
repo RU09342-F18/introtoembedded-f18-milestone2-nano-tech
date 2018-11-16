@@ -17,9 +17,19 @@ void PWN_Set(int percent);
 int main(void)
 {//Board Setup
   float Temperature_Offset;
+  float Current_Temperature;
+  float Swap_Space;
   Board_Setup();
   UART_Setup();
   // Get initial temperature
+Swap_Space = Convert_VtoR(ADC12MEM0);
+Current_Temperature = Convert_RtoT(Swap_Space);
+Temperature_Offset = Current_Temperature - Target_Temperature;
+if(Temperature_Offset >= 1){
+    PWM_Set((Temperature * 7) + 15);
+    }else{
+    PWM_Set(10);
+}
 
   while(1){
     temp = Convert_VtoR(Last_ADC);
