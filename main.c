@@ -31,11 +31,6 @@ if(Temperature_Offset >= 1){
     PWM_Set(10);
 }
 
-  while(1){
-    temp = Convert_VtoR(Last_ADC);
-    temp = Convert_RtoT(temp);
-    TA0CCR1 = temp * 630;
-  }
 
 
 
