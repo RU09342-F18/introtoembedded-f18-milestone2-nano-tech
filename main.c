@@ -55,12 +55,12 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                    // Vector  6:  ADC12IFG0
-
+      /*
     //Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
     high = voltage >> 8;                      // Bt shift voltage over by 8 bits and store in "High"
     UCA1TXBUF = high;
     UCA1TXBUF = voltage;
-    
+    */
     //Flash a light
     if (ADC12MEM0 >= 0x7ff){                  // ADC12MEM = A0 > 0.5AVcc?
       P1OUT |= BIT0;                          // P1.0 = 1
