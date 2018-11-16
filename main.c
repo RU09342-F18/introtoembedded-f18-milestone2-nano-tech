@@ -1,13 +1,13 @@
 #include <msp430.h>
-#include <Functions.c>
+#include <Functions.h>
 
 int Target_Temperature = 33;
 float storage = 0;
 int voltage;
 unsigned char high;
 
-float Convert_VtoR(float vout);                
-float Convert_RtoT(float resist);
+//float Convert_VtoR(float vout);
+//float Convert_RtoT(float resist);
 
 void UART_Setup();
 void Board_Setup();
