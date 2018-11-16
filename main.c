@@ -1,7 +1,6 @@
 #include <msp430.h>
 
 int Target_Temperature = 33;
-long Last_ADC = 0;
 float storage = 0;
 int voltage;
 unsigned char high;
@@ -56,14 +55,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
   switch(__even_in_range(ADC12IV,34))
   {
   case  6:                                    // Vector  6:  ADC12IFG0
-    Last_ADC = ADC12MEM0;
-    //Convert the ADC number, back to a voltage
-    /* storage = (float)ADC12MEM0;            // cast the ADC value to a float)
-    storage = storage * 3.3;                  // Multiply by the max voltage
-    storage = storage / 495;                  // Divide by scaling value
-    storage = storage * 1000;                 // scale up the voltage value so we don't lose decimals and accuracy
-    voltage = (int)storage;                   // cast float to an int, store in voltage
-    */
+
     //Transmit the Voltage over UART in TWO pieces (Total of 16 bits)
     high = voltage >> 8;                      // Bt shift voltage over by 8 bits and store in "High"
     UCA1TXBUF = high;
