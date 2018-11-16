@@ -1,5 +1,6 @@
 #include <msp430.h>
 
+int Target_Temperature = 33;
 long Last_ADC = 0;
 float storage = 0;
 int voltage;
@@ -14,10 +15,12 @@ void Timer_Setup();
 void PWN_Set(int percent);
 
 int main(void)
-{
-  float temp;
+{//Board Setup
+  float Temperature_Offset;
   Board_Setup();
   UART_Setup();
+  // Get initial temperature
+
   while(1){
     temp = Convert_VtoR(Last_ADC);
     temp = Convert_RtoT(temp);
