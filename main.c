@@ -19,7 +19,7 @@ int main(void){
   int Target_Temperature = 33;
   float Temperature_Offset;
   float Current_Temperature;
-  float Swap_Space;
+  float Swap_Space;             //Swap space only to be used by the main function
   Board_Setup();
   UART_Setup();
   
@@ -31,7 +31,7 @@ int main(void){
   if(Temperature_Offset >= 1){
     Set_PWM((Temperature_Offset * 7) + 15);
   }
-  else{
+      else{
     Set_PWM(10);
   }
 
