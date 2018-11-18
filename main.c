@@ -41,6 +41,14 @@ int main(void){
   Past_Temperature[3] = Current_Temperature;
   Past_Temperature[4] = Current_Temperature;
   while(1){
+      //Shift Values
+      Past_Temperature[4] = Past_Temperature[3];
+      Past_Temperature[3] = Past_Temperature[2];
+      Past_Temperature[2] = Past_Temperature[1];
+      Past_Temperature[1] = Past_Temperature[0];
+      //Get next Temperature
+      Swap_Space = Convert_VtoR(ADC12MEM0);
+      Past_Temperature[0] = Convert_RtoT(Swap_Space);
 
 
   }
