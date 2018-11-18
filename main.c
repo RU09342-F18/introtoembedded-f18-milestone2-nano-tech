@@ -53,7 +53,19 @@ int main(void){
       Past_Temperature[0] = Convert_RtoT(Swap_Space);
       //Get the Slope
       Slope = Detect_Change(Past_Temperature[0], Past_Temperature[1], Past_Temperature[2], Past_Temperature[3], Past_Temperature[4]);
-
+      /*
+        +----------+---------------------+---------------------+
+        |          | Negative Slope      | Positive Slope      |
+        +----------+---------------------+---------------------+
+        | Too High | Slow down A bit     | Make Drastic Change |
+        |          | or                  |                     |
+        |          | Speed up A bit      |                     |
+        +----------+---------------------+---------------------+
+        | Too Low  | Make Drastic Change | Slow down A bit     |
+        |          |                     | or                  |
+        |          |                     | Speed up A bit      |
+        +----------+---------------------+---------------------+
+       */
   }
 
 
