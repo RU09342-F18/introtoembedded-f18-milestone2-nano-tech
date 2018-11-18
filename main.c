@@ -18,6 +18,7 @@ void Set_PWM(int percent);
 int main(void){
   //Board Setup
   int Target_Temperature = 33;
+  int Current_PWM;
   float Temperature_Offset;
   float Current_Temperature;    //Legacy, should be replaced by Past_Temperature[0]
   float Swap_Space;             //Swap space only to be used by the main function
@@ -33,10 +34,12 @@ int main(void){
   Temperature_Offset = Current_Temperature - Target_Temperature;
   
   if(Temperature_Offset >= 1){
-    Set_PWM((Temperature_Offset * 7) + 15);
+      Current_PWM = (Temperature_Offset * 7) + 15
+    Set_PWM(Current_PWM);
   }
       else{
-    Set_PWM(10);
+          Current_PWM = 10;
+    Set_PWM(Current_PWM);
   }
   Past_Temperature[0] = Current_Temperature;
   Past_Temperature[1] = Current_Temperature;
@@ -70,7 +73,9 @@ int main(void){
       //Adjust fan speed
       Temperature_Offset = Current_Temperature - Target_Temperature;
       if(Temperature_Offset > 0 && Slope < 0){ // Temperature is too high and the slope is negative
-          if(Slope_Aggresion >= Slope)
+          if(Slope_Aggresion <= Abs_Val(Slope)){ //The temperature is changing too fast!
+
+          }
       }
   }
 
