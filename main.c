@@ -75,10 +75,14 @@ int main(void){
       if(Temperature_Offset > 0 && Slope < 0){                                                  // Temperature is too high and the slope is negative
           if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //The temperature is changing too fast!
               Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion))        //Slow down the Fan
+                Set_PWM(Current_PWM);
           }
       }
       if (Temperature_Offset > 0 && Slope > 0){                                                 //Temperature is too high and the slope is positive
-
+          if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //The temperature is changing too fast!
+              Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Slow down the Fan
+              Set_PWM(Current_PWM);
+          }
       }
   }
 
