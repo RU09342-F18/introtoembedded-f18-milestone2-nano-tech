@@ -21,6 +21,8 @@ int main(void){
   float Temperature_Offset;
   float Current_Temperature;
   float Swap_Space;             //Swap space only to be used by the main function
+  float Slope;
+
   Board_Setup();
   UART_Setup();
   
@@ -49,7 +51,8 @@ int main(void){
       //Get next Temperature
       Swap_Space = Convert_VtoR(ADC12MEM0);
       Past_Temperature[0] = Convert_RtoT(Swap_Space);
-
+      //Get the Slope
+      Slope = Detect_Change(Past_Temperature[0], Past_Temperature[1], Past_Temperature[2], Past_Temperature[3], Past_Temperature[4]);
 
   }
 
