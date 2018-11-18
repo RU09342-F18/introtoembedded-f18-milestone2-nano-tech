@@ -169,6 +169,7 @@ void Board_Setup(){
   //P1.2
   P1SEL |= BIT2;
   P1DIR |= BIT2;
+  P4DIR |= BIT7;                             
 }
 
 void Timer_Setup(){
@@ -188,6 +189,7 @@ void Timer_Setup(){
 #pragma vector=TIMER0_A1_VECTOR
 __interrupt void TIMER_A1(void){
   TA1CCR1 += 3277;
+  P4OUT ^= BIT7;                             // Toggle LED
 }
 
 void Set_PWM(int percent){
