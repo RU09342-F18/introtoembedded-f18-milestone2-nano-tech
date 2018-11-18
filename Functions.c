@@ -93,5 +93,11 @@ float Detect_Change(int T0, int T1, int T2, int T3, int T4){
         return (0);
     }
 
-
+float Abs_Val(float value){ //Very slow and inefficient way of getting the ABS value
+    if(value >= 0){
+        return value;
+    }else{
+        return value * -1;
+    }
+}
 }
