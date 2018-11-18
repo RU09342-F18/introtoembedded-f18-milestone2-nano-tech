@@ -183,7 +183,7 @@ void Timer_Setup(){
   TA1CCR0 = 32768;
   TA1CCTL1 = CCIE;
   }
-}
+
 
 #pragma vector=TIMER0_A1_VECTOR
 __interrupt void TIMER_A1(void){
