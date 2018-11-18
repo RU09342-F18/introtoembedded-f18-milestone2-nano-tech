@@ -19,8 +19,9 @@ int main(void){
   //Board Setup
   int Target_Temperature = 33;
   float Temperature_Offset;
-  float Current_Temperature;
+  float Current_Temperature;    //Legacy, should be replaced by Past_Temperature[0]
   float Swap_Space;             //Swap space only to be used by the main function
+  float Slope_Aggresion = 0.5;  //How aggressively should the program change the fan speed
   float Slope;
 
   Board_Setup();
@@ -66,6 +67,11 @@ int main(void){
         |          |                     | Speed up A bit      |
         +----------+---------------------+---------------------+
        */
+      //Adjust fan speed
+      Temperature_Offset = Current_Temperature - Target_Temperature;
+      if(Temperature_Offset > 0 && Slope < 0){ // Temperature is too high and the slope is negative
+          if(Slope_Aggresion >= Slope)
+      }
   }
 
 
