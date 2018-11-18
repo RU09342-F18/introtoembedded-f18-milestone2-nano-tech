@@ -5,6 +5,7 @@
 float storage = 0;
 int voltage;
 unsigned char high;
+int Past_Temperature[5] ={0,0,0,0,0};
 
 //float Convert_VtoR(float vout);
 //float Convert_RtoT(float resist);
@@ -33,6 +34,15 @@ int main(void){
   }
       else{
     Set_PWM(10);
+  }
+  Past_Temperature[0] = Current_Temperature;
+  Past_Temperature[1] = Current_Temperature;
+  Past_Temperature[2] = Current_Temperature;
+  Past_Temperature[3] = Current_Temperature;
+  Past_Temperature[4] = Current_Temperature;
+  while(1){
+
+
   }
 
 
