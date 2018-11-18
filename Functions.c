@@ -82,13 +82,13 @@ float Detect_Change(int T0, int T1, int T2, int T3, int T4){
 
     if(Total_diff > 0){//Since the number of changes is even, the tie breaker will be if the total difference is negative or positive
         increase ++;
-    }else if(total_diff < 0){
+    }else if(Total_diff < 0){
         decrease ++;
     }
     if(decrease > increase){
-        return (Total_diff / 5) //Return the Slope
+        return (Total_diff / 5); //Return the Slope
     }else if (decrease < increase){
-        return (Total_diff / 5) //Return the Slope
+        return (Total_diff / 5); //Return the Slope
     }else if (decrease == increase){
         return (0);
     }
