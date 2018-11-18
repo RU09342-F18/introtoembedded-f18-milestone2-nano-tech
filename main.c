@@ -77,11 +77,26 @@ int main(void){
               Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion))        //Slow down the Fan
                 Set_PWM(Current_PWM);
           }
-      }
-      if (Temperature_Offset > 0 && Slope > 0){                                                 //Temperature is too high and the slope is positive
-          if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //The temperature is changing too fast!
-              Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Slow down the Fan
+      }else if (Temperature_Offset > 0 && Slope > 0){                                           //Temperature is too high and the slope is positive
+              Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed upthe Fan
               Set_PWM(Current_PWM);
+
+      }else if (Temperature_Offset < 0 && Slope < 0){                                           //Temperature is too Low and the slope is negative
+          Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion))            //Slow down the Fan
+          Set_PWM(Current_PWM);
+      }else if (Temperature_Offset < 0 && Slope > 0){                                           //Temperature is too low and slope is positive
+          if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //Temperature is changing too fast!
+              Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed upthe Fan
+              Set_PWM(Current_PWM);
+          }
+      }else{                                                                                    //All the edge cases
+          if(Temperature_Offset > 0 && Slope == 0){                                                 //Temperature is too high and slope is steady
+              Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Increase the fan speed by some amount and wait for change
+              Set_PWM(Current_PWM);
+          }
+          if(Temperature_Offset < 0 && Slope == 0){                                                 //Temperature is too low and slope is steady
+            Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                     //Decrease the fan speed by some amount and wait for change
+            Set_PWM(Current_PWM);
           }
       }
   }
