@@ -14,6 +14,7 @@ void UART_Setup();
 void Board_Setup();
 void Timer_Setup();
 void Set_PWM(int percent);
+void New_PWM(float PWM);
 
 int main(void){
   //Board Setup
