@@ -228,4 +228,6 @@ void Set_PWM(int percent){
   }
 }
 
-
+void New_PWM(float PWM){
+    Current_PWM = PWM;
+}
