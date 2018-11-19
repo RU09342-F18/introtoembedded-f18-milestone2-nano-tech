@@ -27,6 +27,7 @@ int main(void){
 
   Board_Setup();
   UART_Setup();
+  Timer_Setup();
   
   // Get initial temperature
   Swap_Space = Convert_VtoR(ADC12MEM0);
@@ -35,11 +36,10 @@ int main(void){
   Temperature_Offset = Current_Temperature - Target_Temperature;
   
   if(Temperature_Offset >= 1){
-      Current_PWM = (Temperature_Offset * 7) + 15;
+    Current_PWM = (Temperature_Offset * 7) + 15;
     Set_PWM(Current_PWM);
-  }
-      else{
-          Current_PWM = 10;
+  }else{
+    Current_PWM = 10;
     Set_PWM(Current_PWM);
   }
 
@@ -63,6 +63,7 @@ int main(void){
 
     //Get the Slope
     Slope = Detect_Change(Past_Temperature[0], Past_Temperature[1], Past_Temperature[2], Past_Temperature[3], Past_Temperature[4]);
+
     /*
       +----------+---------------------+---------------------+
       |          | Negative Slope      | Positive Slope      |
@@ -79,38 +80,38 @@ int main(void){
 
     //Adjust fan speed
     Temperature_Offset = Current_Temperature - Target_Temperature;
-    if(Temperature_Offset > 0 && Slope < 0){                                                  // Temperature is too high and the slope is negative
-      if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //The temperature is changing too fast!
-        Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));        //Slow down the Fan
+    if(Temperature_Offset > 0 && Slope < 0){                                                      // Temperature is too high and the slope is negative
+      if(Slope_Aggresion <= Abs_Val(Slope)){                                                      //The temperature is changing too fast!
+        Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));           //Slow down the Fan
         Set_PWM(Current_PWM);
       }
-    }else if (Temperature_Offset > 0 && Slope > 0){                                           //Temperature is too high and the slope is positive
-      Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
+    }else if (Temperature_Offset > 0 && Slope > 0){                                               //Temperature is too high and the slope is positive
+      Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));             //Speed up the Fan
       Set_PWM(Current_PWM);
-    }else if (Temperature_Offset < 0 && Slope < 0){                                           //Temperature is too Low and the slope is negative
-      Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));            //Slow down the Fan
+    }else if (Temperature_Offset < 0 && Slope < 0){                                               //Temperature is too Low and the slope is negative
+      Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));             //Slow down the Fan
       Set_PWM(Current_PWM);
-    }else if (Temperature_Offset < 0 && Slope > 0){                                           //Temperature is too low and slope is positive
-      if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //Temperature is changing too fast!
-        Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up  the Fan
+    }else if (Temperature_Offset < 0 && Slope > 0){                                               //Temperature is too low and slope is positive
+      if(Slope_Aggresion <= Abs_Val(Slope)){                                                      //Temperature is changing too fast!
+        Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));           //Speed up  the Fan
         Set_PWM(Current_PWM);
       }
-    }else{                                                                                    //All the edge cases
-      if(Temperature_Offset > 0 && Slope == 0){                                                 //Temperature is too high and slope is steady
+    }else{                                                                                        //All the edge cases
+      if(Temperature_Offset > 0 && Slope == 0){                                                   //Temperature is too high and slope is steady
         Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Increase the fan speed by some amount and wait for change
         Set_PWM(Current_PWM);
-      }else if(Temperature_Offset < 0 && Slope == 0){                                          //Temperature is too low and slope is steady
-        Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                    //Decrease the fan speed by some amount and wait for change
+      }else if(Temperature_Offset < 0 && Slope == 0){                                             //Temperature is too low and slope is steady
+        Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Decrease the fan speed by some amount and wait for change
         Set_PWM(Current_PWM);
-      }else if(Temperature_Offset == 0){                                                        //We are EXACTLY on the temperature we want!
+      }else if(Temperature_Offset == 0){                                                          //We are EXACTLY on the temperature we want!
         if(Slope > 0){
-            Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));        //Slow down the Fan
+            Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));       //Slow down the Fan
         }else if(Slope < 0){
             Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
-        }
-      }
-    }
-  }
+        } // end nested else if
+      } // end else if
+    } // end else
+  } // end while 
 
   while (1){
     ADC12CTL0 |= ADC12SC;                     // Start sampling/conversion
@@ -118,7 +119,7 @@ int main(void){
     __bis_SR_register(LPM0_bits + GIE);       // LPM0, ADC12_ISR will force exit
     __no_operation();                         // For debugger
   }
-}
+} // end main 
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector = ADC12_VECTOR
@@ -149,6 +150,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     default: break;
   }
 }
+
 void UART_Setup(){
   UCA1CTL1 |= UCSWRST;                        // **Put state machine in reset**
   UCA1CTL1 |= UCSSEL_1;                       // CLK = ACLK
@@ -187,7 +189,6 @@ void Timer_Setup(){
   TA1CCR0 = 32768;
   TA1CCTL1 = CCIE;
   }
-
 
 #pragma vector=TIMER0_A1_VECTOR
 __interrupt void TIMER_A1(void){
