@@ -5,7 +5,7 @@
  *      Author: Tyler
  */
 #include "Functions.h"
-float Convert_VtoR(float vout){                 // funtion for converting the vout value to resistance
+float Convert_VtoR(long vout){                 // funtion for converting the vout value to resistance
   float R2_value;
 
   R2_value = (vout * 10000) / (vout - 3.3);
