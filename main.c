@@ -142,8 +142,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
     //Flash a light
     if (ADC12MEM0 >= 0x7ff){                  // ADC12MEM = A0 > 0.5AVcc?
       P1OUT |= BIT0;                          // P1.0 = 1
-    }
-    else{
+    }else{
       P1OUT &= ~BIT0;                         // P1.0 = 0
     }
     __bic_SR_register_on_exit(LPM0_bits);     // Exit active CPU
@@ -199,9 +198,9 @@ __interrupt void TIMER_A1(void){
 void Set_PWM(int percent){
   if (percent >= 15){
     TA0CCR1 = percent;
-  }                     
-  else{
+  } else{
     TA0CCR1 = 15;
+    New_PWM(15);
   }
 }
 
