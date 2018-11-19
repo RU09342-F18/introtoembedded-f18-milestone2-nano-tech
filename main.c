@@ -220,9 +220,12 @@ __interrupt void TIMER_A1(void){
 }
 
 void Set_PWM(int percent){
-  if (percent >= 15){
+  if ((percent >= 15) && (percent <= 100)){
     TA0CCR1 = percent;
-  } else{
+  }else if (percent > 100){
+    TA0CCR1 = 100;
+    New_PWM(100);
+  }else{
     TA0CCR1 = 15;
     New_PWM(15);
   }
