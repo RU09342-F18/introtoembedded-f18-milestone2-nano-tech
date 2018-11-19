@@ -31,6 +31,7 @@ int main(void){
   // Get initial temperature
   Swap_Space = Convert_VtoR(ADC12MEM0);
   Current_Temperature = Convert_RtoT(Swap_Space);
+  UCA0TXBUF = Current_Temperature;
   Temperature_Offset = Current_Temperature - Target_Temperature;
   
   if(Temperature_Offset >= 1){
@@ -41,73 +42,75 @@ int main(void){
           Current_PWM = 10;
     Set_PWM(Current_PWM);
   }
+
   Past_Temperature[0] = Current_Temperature;
   Past_Temperature[1] = Current_Temperature;
   Past_Temperature[2] = Current_Temperature;
   Past_Temperature[3] = Current_Temperature;
   Past_Temperature[4] = Current_Temperature;
+  
   while(1){
-      //Shift Values
-      Past_Temperature[4] = Past_Temperature[3];
-      Past_Temperature[3] = Past_Temperature[2];
-      Past_Temperature[2] = Past_Temperature[1];
-      Past_Temperature[1] = Past_Temperature[0];
-      //Get next Temperature
-      Swap_Space = Convert_VtoR(ADC12MEM0);
-      Past_Temperature[0] = Convert_RtoT(Swap_Space);
-      //Get the Slope
-      Slope = Detect_Change(Past_Temperature[0], Past_Temperature[1], Past_Temperature[2], Past_Temperature[3], Past_Temperature[4]);
-      /*
-        +----------+---------------------+---------------------+
-        |          | Negative Slope      | Positive Slope      |
-        +----------+---------------------+---------------------+
-        | Too High | Slow down A bit     | Make Drastic Change |
-        |          | or                  |                     |
-        |          | Speed up A bit      |                     |
-        +----------+---------------------+---------------------+
-        | Too Low  | Make Drastic Change | Slow down A bit     |
-        |          |                     | or                  |
-        |          |                     | Speed up A bit      |
-        +----------+---------------------+---------------------+
-       */
-      //Adjust fan speed
-      Temperature_Offset = Current_Temperature - Target_Temperature;
-      if(Temperature_Offset > 0 && Slope < 0){                                                  // Temperature is too high and the slope is negative
-          if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //The temperature is changing too fast!
-              Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));        //Slow down the Fan
-                Set_PWM(Current_PWM);
-          }
-      }else if (Temperature_Offset > 0 && Slope > 0){                                           //Temperature is too high and the slope is positive
-              Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
-              Set_PWM(Current_PWM);
+    //Shift Values
+    Past_Temperature[4] = Past_Temperature[3];
+    Past_Temperature[3] = Past_Temperature[2];
+    Past_Temperature[2] = Past_Temperature[1];
+    Past_Temperature[1] = Past_Temperature[0];
 
-      }else if (Temperature_Offset < 0 && Slope < 0){                                           //Temperature is too Low and the slope is negative
-          Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));            //Slow down the Fan
-          Set_PWM(Current_PWM);
-      }else if (Temperature_Offset < 0 && Slope > 0){                                           //Temperature is too low and slope is positive
-          if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //Temperature is changing too fast!
-              Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up  the Fan
-              Set_PWM(Current_PWM);
-          }
-      }else{                                                                                    //All the edge cases
-          if(Temperature_Offset > 0 && Slope == 0){                                                 //Temperature is too high and slope is steady
-              Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Increase the fan speed by some amount and wait for change
-              Set_PWM(Current_PWM);
-          }else if(Temperature_Offset < 0 && Slope == 0){                                          //Temperature is too low and slope is steady
-            Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                    //Decrease the fan speed by some amount and wait for change
-            Set_PWM(Current_PWM);
-          }else if(Temperature_Offset == 0){                                                        //We are EXACTLY on the temperature we want!
-              if(Slope > 0){
-                  Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));        //Slow down the Fan
-              }else if(Slope < 0){
-                  Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
-              }
-          }
+    //Get next Temperature
+    Swap_Space = Convert_VtoR(ADC12MEM0);
+    Past_Temperature[0] = Convert_RtoT(Swap_Space);
+    UCA0TXBUF = Past_Temperature[0];
 
+    //Get the Slope
+    Slope = Detect_Change(Past_Temperature[0], Past_Temperature[1], Past_Temperature[2], Past_Temperature[3], Past_Temperature[4]);
+    /*
+      +----------+---------------------+---------------------+
+      |          | Negative Slope      | Positive Slope      |
+      +----------+---------------------+---------------------+
+      | Too High | Slow down A bit     | Make Drastic Change |
+      |          | or                  |                     |
+      |          | Speed up A bit      |                     |
+      +----------+---------------------+---------------------+
+      | Too Low  | Make Drastic Change | Slow down A bit     |
+      |          |                     | or                  |
+      |          |                     | Speed up A bit      |
+      +----------+---------------------+---------------------+
+      */
+
+    //Adjust fan speed
+    Temperature_Offset = Current_Temperature - Target_Temperature;
+    if(Temperature_Offset > 0 && Slope < 0){                                                  // Temperature is too high and the slope is negative
+      if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //The temperature is changing too fast!
+        Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));        //Slow down the Fan
+        Set_PWM(Current_PWM);
       }
+    }else if (Temperature_Offset > 0 && Slope > 0){                                           //Temperature is too high and the slope is positive
+      Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
+      Set_PWM(Current_PWM);
+    }else if (Temperature_Offset < 0 && Slope < 0){                                           //Temperature is too Low and the slope is negative
+      Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));            //Slow down the Fan
+      Set_PWM(Current_PWM);
+    }else if (Temperature_Offset < 0 && Slope > 0){                                           //Temperature is too low and slope is positive
+      if(Slope_Aggresion <= Abs_Val(Slope)){                                                    //Temperature is changing too fast!
+        Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up  the Fan
+        Set_PWM(Current_PWM);
+      }
+    }else{                                                                                    //All the edge cases
+      if(Temperature_Offset > 0 && Slope == 0){                                                 //Temperature is too high and slope is steady
+        Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Increase the fan speed by some amount and wait for change
+        Set_PWM(Current_PWM);
+      }else if(Temperature_Offset < 0 && Slope == 0){                                          //Temperature is too low and slope is steady
+        Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                    //Decrease the fan speed by some amount and wait for change
+        Set_PWM(Current_PWM);
+      }else if(Temperature_Offset == 0){                                                        //We are EXACTLY on the temperature we want!
+        if(Slope > 0){
+            Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));        //Slow down the Fan
+        }else if(Slope < 0){
+            Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
+        }
+      }
+    }
   }
-
-
 
   while (1){
     ADC12CTL0 |= ADC12SC;                     // Start sampling/conversion
@@ -143,7 +146,7 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
       P1OUT &= ~BIT0;                         // P1.0 = 0
     }
     __bic_SR_register_on_exit(LPM0_bits);     // Exit active CPU
-  default: break;
+    default: break;
   }
 }
 void UART_Setup(){
