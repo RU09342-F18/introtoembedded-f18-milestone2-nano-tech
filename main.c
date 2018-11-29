@@ -6,6 +6,8 @@ float storage = 0;
 int voltage;
 unsigned char high;
 int Past_Temperature[5] ={0,0,0,0,0};
+int Current_PWM;
+long ADC12;
 
 //float Convert_VtoR(float vout);
 //float Convert_RtoT(float resist);
@@ -13,18 +15,19 @@ int Past_Temperature[5] ={0,0,0,0,0};
 void UART_Setup();
 void Board_Setup();
 void Timer_Setup();
-void Set_PWM(int percent);
+void Set_Pwm(int percent);
 void New_PWM(float PWM);
 
 int main(void){
   //Board Setup
   int Target_Temperature = 33;
-  int Current_PWM;
+
   float Temperature_Offset;
   float Current_Temperature;    //Legacy, should be replaced by Past_Temperature[0]
   float Swap_Space;             //Swap space only to be used by the main function
   float Slope_Aggresion = 0.5;  //How aggressively should the program change the fan speed
   float Slope;
+  char C_Current;
 
   Board_Setup();
   UART_Setup();
@@ -38,10 +41,10 @@ int main(void){
   
   if(Temperature_Offset >= 1){
     Current_PWM = (Temperature_Offset * 7) + 15;
-    Set_PWM(Current_PWM);
+    Set_Pwm(Current_PWM);
   }else{
     Current_PWM = 10;
-    Set_PWM(Current_PWM);
+    Set_Pwm(Current_PWM);
   }
 
   Past_Temperature[0] = Current_Temperature;
@@ -80,62 +83,164 @@ int main(void){
       */
 
     //Adjust fan speed
-    Temperature_Offset = Current_Temperature - Target_Temperature;
-    Swap_Space = Current_PWM * (Abs_Val(Slope) - Slope_Aggresion);
-    if(Temperature_Offset > 0 && Slope < 0){                                                      // Temperature is too high and the slope is negative
-      if(Slope_Aggresion <= Abs_Val(Slope)){                                                      //The temperature is changing too fast!
-        Swap_Space = Current_PWM * (Abs_Val(Slope) - Slope_Aggresion);
-        if (Swap_Space >=  Current_PWM / 3){                                                        //Are you trying to change the fan speed by too much?
-            Current_PWM = Current_PWM * 0.7;                                                        //Slow down the fan by 30%
-        }else{
-        Current_PWM = Current_PWM ;                                                                 //Slow down the Fan
-        Set_PWM(Current_PWM);
-        }
-      }
-    }else if (Temperature_Offset > 0 && Slope > 0){                                               //Temperature is too high and the slope is positive
-        Swap_Space = Current_PWM * (Abs_Val(Slope) - Slope_Aggresion);
-        if(Swap_Space >= Current_PWM / 3){
-            Current_PWM = Current_PWM * 1.3;                                                    //Increase fan by 30%
-        }else{
-            Current_PWM = Current_PWM + Swap_Space;                                             //Increase fan speed by an amount
-        }
-        Set_PWM(Current_PWM);
+    //void Set_Pwm(int thing);
 
-    }else if (Temperature_Offset < 0 && Slope < 0){                                               //Temperature is too Low and the slope is negative
-      Swap_Space = Current_PWM * (Abs_Val(Slope) - Slope_Aggresion);
-        if(Swap_Space >= Current_PWM / 3){
-            Current_PWM = Current_PWM * 0.7;                                                    //Decrease fan by 30%
-        }else{
-            Current_PWM = Current_PWM - Swap_Space;                                             //Decrease fan speed by an amount
-        }
-        Set_PWM(Current_PWM);
-    }else if (Temperature_Offset < 0 && Slope > 0){                                               //Temperature is too low and slope is positive
-      Swap_Space = Current_PWM * (Abs_Val(Slope) - Slope_Aggresion);
-      if(Slope_Aggresion <= Abs_Val(Slope)){
-          if(Swap_Space > Current_PWM / 3){
-              Current_PWM = Current_PWM *0.7;
-          }else{
-              Current_PWM = Current_PWM - Swap_Space;
-          }
-      }else{
-          Current_PWM = Current_PWM + Swap_Space;//THIS CHANGE MIGHT BE TOO LARGE FIX THIS IF YOU NEED TO
-      }
-    }else{                                                                                        //All the edge cases
-      if(Temperature_Offset > 0 && Slope == 0){                                                   //Temperature is too high and slope is steady
-        Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Increase the fan speed by some amount and wait for change
-        Set_PWM(Current_PWM);
-      }else if(Temperature_Offset < 0 && Slope == 0){                                             //Temperature is too low and slope is steady
-        Current_PWM = Current_PWM + (Past_Temperature[0] - Target_Temperature);                   //Decrease the fan speed by some amount and wait for change
-        Set_PWM(Current_PWM);
-      }else if(Temperature_Offset == 0){                                                          //We are EXACTLY on the temperature we want!
-        if(Slope > 0){
-            Current_PWM = Current_PWM - (Current_PWM * (Abs_Val(Slope) - Slope_Aggresion));       //Slow down the Fan
-        }else if(Slope < 0){
-            Current_PWM = Current_PWM + (Current_PWM * (Abs_Val(Slope) + Slope_Aggresion));       //Speed up the Fan
-        } // end nested else if
-      } // end else if
-    } // end else
-  } // end while 
+    float Current_PWM;
+    float Slope_Aggression;
+    float Slope;
+    float Temperature_Offset; //make this an int
+    int PWM_Diff; //New int
+
+    //Calculate the recoommended change first
+    //PWM_Diff = Current_PWM * (Abs_Val(Slope) - Slope_Aggression);         //This is how much we want to change the fan PWM by
+    PWM_Diff = (((float)Current_PWM / 10) + 0.5)* Temperature_Offset;
+    if(PWM_Diff >= Current_PWM / 3){                                    //Check if we are changing it by too much
+    PWM_Diff = Current_PWM * 0.3;                                       //Lets only change the PWM by at most 30% of it's current value
+    }
+    //All conditions based on current temperature
+    switch((int)Temperature_Offset){
+        case -5 :
+        case -4 :
+        case -3 :
+            if(Slope > 0){                                              //Temperature is too low and it's going up, GOOD!
+                if(Slope_Aggression <= Slope){                          //Is the temperature rising too fast?
+                    Current_PWM = Current_PWM + PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }               //The lets speed up the fan a bit
+            }else if (Slope <= 0){
+                Current_PWM = Current_PWM - PWM_Diff;
+                Set_Pwm(Current_PWM);
+            }
+        break;
+        case -2 :
+            if(Slope > 0){
+                if(Slope_Aggression <= Slope){
+                    Current_PWM = Current_PWM + PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM + 3;
+                    Set_Pwm(Current_PWM);                                   //Make a tiny adjustment
+                }
+            }else if (Slope < 0){
+                Current_PWM = Current_PWM - PWM_Diff;
+                    Set_Pwm(Current_PWM);
+            }
+        break;
+        case -1 :
+            if (Slope > 0){
+                if(Slope_Aggression <= Slope){
+                    Current_PWM = Current_PWM + PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM + 2;
+                    Set_Pwm(Current_PWM);                               //Make a tiny adjustment
+                }
+
+            }else if (Slope < 0){
+                if(Slope_Aggression <= Abs_Val(Slope)){
+                    Current_PWM = Current_PWM - PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM - 2;
+                    Set_Pwm(Current_PWM);
+                }
+            }
+        break;
+        case 0 :
+            if (Slope > 0){
+                if(Slope_Aggression <= Slope){
+                    Current_PWM = Current_PWM + PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM + 1;
+                    Set_Pwm(Current_PWM);
+                }
+            }else if(Slope < 0){
+                if(Slope_Aggression <= Slope){
+                    Current_PWM = Current_PWM + PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }//else                                             I had something planned here?
+            }
+        break;
+        case 1 :
+            if (Slope > 0){
+                if(Slope_Aggression <= Abs_Val(Slope)){
+                    Current_PWM = Current_PWM + PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM + 2;
+                    Set_Pwm(Current_PWM);
+                }
+            }else if (Slope < 0){
+                if(Slope_Aggression <= Abs_Val(Slope)){
+                    Current_PWM = Current_PWM - PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM - 2;
+                    Set_Pwm(Current_PWM);
+                }
+            }
+            break;
+        case 2 :
+            if (Slope > 0){
+                if(Slope_Aggression <= Slope){
+                    Set_Pwm(Current_PWM + PWM_Diff);
+                }else{
+                    Set_Pwm(Current_PWM + 3);
+                }
+            }else if (Slope < 0){
+                if (Slope_Aggression <= Abs_Val(Slope)){
+                    Current_PWM = Current_PWM - PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    Current_PWM = Current_PWM -3;
+                    Set_Pwm(Current_PWM);
+                }
+            }
+            break;
+        case 4 :
+        case 5 :
+        case 3 :
+            if (Slope > 0){
+                Current_PWM = Current_PWM - PWM_Diff;
+                Set_Pwm(Current_PWM);
+            }else{
+                if (Slope_Aggression <= Abs_Val(Slope)){
+                    Current_PWM = Current_PWM + 2;
+                }
+            }
+            break;
+        default :
+            if (Temperature_Offset > 0){
+                if(Slope >= 0){
+                    Current_PWM = Current_PWM - PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }else{
+                    if (Slope_Aggression <= Slope){
+                        Current_PWM = Current_PWM + PWM_Diff;
+                        Set_Pwm(Current_PWM);
+                    }
+                }
+            }else if (Slope < 0){
+                if(Slope > 0){
+                    if(Slope_Aggression <= Abs_Val(Slope)){
+                        Current_PWM = Current_PWM - PWM_Diff;
+                        Set_Pwm(Current_PWM);
+                    }
+
+                }else{
+                    Current_PWM = Current_PWM - PWM_Diff;
+                    Set_Pwm(Current_PWM);
+                }
+            }
+            break;
+
+
+  }
+            UCA1TXBUF = Current_PWM;
+            C_Current = (char)Current_Temperature;
+            UCA1TXBUF = C_Current;
+  }// end while
 
   while (1){
     ADC12CTL0 |= ADC12SC;                     // Start sampling/conversion
@@ -175,13 +280,15 @@ void __attribute__ ((interrupt(ADC12_VECTOR))) ADC12_ISR (void)
 }
 
 void UART_Setup(){
+    P4SEL |= BIT4 + BIT5;
   UCA1CTL1 |= UCSWRST;                        // **Put state machine in reset**
-  UCA1CTL1 |= UCSSEL_1;                       // CLK = ACLK
-  UCA1BR0 = 0x03;                             // 32kHz/9600=3.41 (see User's Guide)
+  UCA1CTL1 |= UCSSEL_2;                       // CLK = ACLK
+  UCA1BR0 = 9;                             // 32kHz/9600=3.41 (see User's Guide)
   UCA1BR1 = 0x00;                             //
   UCA1MCTL = UCBRS_3+UCBRF_0;                 // Modulation UCBRSx=3, UCBRFx=0
   UCA1CTL1 &= ~UCSWRST;                       // **Initialize USCI state machine**
   UCA1IE |= UCRXIE;                           // Enable USCI_A0 RX interrupt
+
 }
 
 void Board_Setup(){
@@ -219,7 +326,7 @@ __interrupt void TIMER_A1(void){
   P4OUT ^= BIT7;                             // Toggle LED
 }
 
-void Set_PWM(int percent){
+void Set_Pwm(int percent){
   if ((percent >= 15) && (percent <= 100)){
     TA0CCR1 = percent;
   }else if (percent > 100){
