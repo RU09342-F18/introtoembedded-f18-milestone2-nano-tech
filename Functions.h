@@ -10,7 +10,7 @@
 
 
 
-float Convert_VtoR(float vout);
+float Convert_VtoR(long ADC);
 
 float Convert_RtoT(float R2_value);
 
