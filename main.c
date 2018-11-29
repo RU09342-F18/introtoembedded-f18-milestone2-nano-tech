@@ -292,13 +292,18 @@ void UART_Setup(){
 }
 
 void Board_Setup(){
+
+
   WDTCTL = WDTPW + WDTHOLD;                   // Stop WDT
-  ADC12CTL0 = ADC12SHT02 + ADC12ON;           // Sampling time, ADC12 on
-  ADC12CTL1 = ADC12SHP + ADC12CONSEQ_2;       // Use sampling timer +  ADC12 on sample single channel repeatedly
-  ADC12IE = 0x01;                             // Enable interrupt
-  ADC12CTL0 |= ADC12ENC;
-  P6SEL |= 0x01;                              // P6.0 ADC option select
-  P1DIR |= 0x01;                              // P1.0 output
+
+  P6SEL |= 0x01;                            // Enable A/D channel A0
+   ADC12CTL0 = ADC12ON+ADC12SHT0_8+ADC12MSC; // Turn on ADC12, set sampling time
+                                             // set multiple sample conversion
+   ADC12CTL1 = ADC12SHP+ADC12CONSEQ_2;       // Use sampling timer, set mode
+   ADC12IE = 0x01;                           // Enable ADC12IFG.0
+   ADC12CTL0 |= ADC12ENC;                    // Enable conversions
+   ADC12CTL0 |= ADC12SC;                     // Start conversion
+
 
   //Setup  Timer 0.1 output to board
   //P1.2
