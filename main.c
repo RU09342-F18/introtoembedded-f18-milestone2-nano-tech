@@ -20,7 +20,7 @@ void New_PWM(float PWM);
 
 int main(void){
   //Board Setup
-  int Target_Temperature = 33;
+  int Target_Temperature = 35;
 
   float Temperature_Offset;
   float Current_Temperature;    //Legacy, should be replaced by Past_Temperature[0]
@@ -53,6 +53,10 @@ int main(void){
   Past_Temperature[3] = Current_Temperature;
   Past_Temperature[4] = Current_Temperature;
   
+  float Current_PWM;
+  float Slope_Aggression;
+  int PWM_Diff; //New int
+
   while(1){
     //Shift Values
     Past_Temperature[4] = Past_Temperature[3];
@@ -85,11 +89,7 @@ int main(void){
     //Adjust fan speed
     //void Set_Pwm(int thing);
 
-    float Current_PWM;
-    float Slope_Aggression;
-    float Slope;
-    float Temperature_Offset; //make this an int
-    int PWM_Diff; //New int
+    Temperature_Offset = Past_Temperature[0] - Target_Temperature;
 
     //Calculate the recoommended change first
     //PWM_Diff = Current_PWM * (Abs_Val(Slope) - Slope_Aggression);         //This is how much we want to change the fan PWM by
