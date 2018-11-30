@@ -9,3 +9,5 @@
 
 .settings/*
 targetConfigs/*
+.launches
+Debug
